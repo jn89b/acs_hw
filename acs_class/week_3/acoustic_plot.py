@@ -162,6 +162,8 @@ def format_spider_plot(locations, categories):
     """builds a spider plot based on the locations of micrphone locations and the categories of the data"""
     fig, axis = plt.subplots(subplot_kw={'projection': 'polar'})
 
+    
+
     axis.set_xticks(locations, categories, color='black', size=10)
 
     # Draw ylabels
@@ -170,9 +172,14 @@ def format_spider_plot(locations, categories):
     # Draw ylabels
     axis.set_rlabel_position(-22.5)
 
-    #set yticks color 
-    plt.yticks(color="grey", size=7)
-    axis.set_rmax(100)
+    #set yticks color
+
+    yticks = np.arange(0, 70, 10)
+    ytick_labels = [str(ytick)+' dBa' for ytick in yticks]
+
+    # axis.set_yticks(yticks, ytick_labels, color='red', size=10)
+    plt.yticks(color="red", size=10)
+    # axis.set_rmax(100)
 
     return fig, axis
 
@@ -192,6 +199,7 @@ if __name__ == '__main__':
 
     #get all the csv files in the folder
     mic_dict, data_dict = get_mic_data_dictionary(csv_files)
+    mic_dict = dict(sorted(mic_dict.items()))
 
     #save folder directory 
     
@@ -224,7 +232,9 @@ if __name__ == '__main__':
     #set figure size
     fig2.set_size_inches(10, 10)
 
-    for key,value in mean_values_dict.items():
+    throttle_percent_labels = ['25%', '50%', '75%', '100%']
+
+    for i, (key,value) in enumerate(mean_values_dict.items()):
         
         if 'Calibrate' in key:
             continue 
@@ -232,13 +242,13 @@ if __name__ == '__main__':
         value = np.array(value) - np.array(mic_background_noise)
         label_name = re.findall(r'\d+', key)
         ax2.plot(microphone_locations, value, 
-            linewidth=1, linestyle='solid', label=label_name[0])
+            linewidth=1, linestyle='solid', label=throttle_percent_labels[i])
 
         ax2.fill(microphone_locations, value, alpha=0.1)
 
     ax2.set_title('Mean Noise Profile')
     #set title for legend 
-    ax2.legend(title='RPM', loc=(0.9,0.9), labelspacing=0.1)
+    ax2.legend(title='ESC', loc=(0.9,0.9), labelspacing=0.1)
     plt.show()
 
     #save plot 
