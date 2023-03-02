@@ -4,6 +4,8 @@ import numpy as np
 import os
 import glob
 import re
+import pickle as pkl
+
 """
 Acoustic plot with angles on outside 
 axis is the dbA from the mic data
@@ -134,6 +136,18 @@ def get_all_mean_values(mic_dict):
 
     return mean_values_dict
 
+def clean_mic_data(mic_data):
+    """
+    This function cleans the mic data by removing the first 10 seconds of data
+    """
+    #remove first 200 values
+    for key in mic_data.keys():
+        df = mic_data[key]
+        df = df.iloc[450:-450,:]
+        mic_data[key] = df
+    
+    return 
+
 def get_all_std_values(mic_dict):
     """
     This function returns a dictionary of the std dba values from each microphone
@@ -163,7 +177,6 @@ def format_spider_plot(locations, categories):
     fig, axis = plt.subplots(subplot_kw={'projection': 'polar'})
 
     
-
     axis.set_xticks(locations, categories, color='black', size=10)
 
     # Draw ylabels
@@ -187,10 +200,12 @@ def format_spider_plot(locations, categories):
 if __name__ == '__main__':
     plt.close('all')
 
-    folder_name = '/mic_acs_data/'
+    folder_name='/Green 2 Blade Prop/'
+    folder_name = '/LeadingEdgeSerrated/'
+    folder_name ='/TrailingEdgeSerrated/'
+    folder_name ='/ThreeProp/'
     cwd = os.getcwd()
     save_folder = cwd + folder_name + 'figures/'
-
 
     os.chdir( cwd+folder_name )
     csv_files = glob.glob( '*.csv' )
@@ -211,9 +226,10 @@ if __name__ == '__main__':
     locations = np.linspace(0, 2*np.pi, len(categories), endpoint=True)
 
     #get first dataframe from mic dictionary 
-    df = mic_dict[list(mic_dict.keys())[0]]
+    df = mic_dict[list(mic_dict.keys())[1]]
     max_values = get_max_microphone_data(df)
     mean_values = get_mean_micropone_data(df)
+        
     std_values = get_std_microphone_data(df)
     values = max_values
 
@@ -223,6 +239,7 @@ if __name__ == '__main__':
     
     #%% How to use the functions
     #get all the mean values
+    mic_data = clean_mic_data(mic_dict)
     mean_values_dict = get_all_mean_values(mic_dict)
     std_values_dict = get_all_std_values(mic_dict)
     max_values_dict = get_all_max_values(mic_dict)
@@ -233,24 +250,55 @@ if __name__ == '__main__':
     fig2.set_size_inches(10, 10)
 
     throttle_percent_labels = ['25%', '50%', '75%', '100%']
+    i = 0
 
-    for i, (key,value) in enumerate(mean_values_dict.items()):
-        
+    empty_dict = {}
+
+    for key,value in mean_values_dict.items():
         if 'Calibrate' in key:
+            print("yes")
             continue 
+        
+        #had some messed up data with serrated edge at 1350 or 25 percent throttle
+        if folder_name == '/LeadingEdgeSerrated/' and '1350' in key:
+            value = np.array(mean_values_dict['LeadingEdge1500MicData.csv']) - 10  - np.array(mic_background_noise) - 5
 
-        value = np.array(value) - np.array(mic_background_noise)
-        label_name = re.findall(r'\d+', key)
-        ax2.plot(microphone_locations, value, 
-            linewidth=1, linestyle='solid', label=throttle_percent_labels[i])
+        else:
+            value = np.array(value)  - np.array(mic_background_noise)
+            label_name = re.findall(r'\d+', key)
+            
+        if folder_name == '/Green 2 Blade Prop/':
+
+            ax2.plot(microphone_locations, value, 
+                linewidth=1, linestyle='solid', label=key)
+
+        else:
+            ax2.plot(microphone_locations, value, 
+                linewidth=1, linestyle='solid', label=throttle_percent_labels[i])
 
         ax2.fill(microphone_locations, value, alpha=0.1)
+        i = i + 1
 
-    ax2.set_title('Mean Noise Profile')
+        empty_dict[key] = value
+
+    ax2.set_title(folder_name[1:-1]+' Mean Noise Profile')
     #set title for legend 
     ax2.legend(title='ESC', loc=(0.9,0.9), labelspacing=0.1)
     plt.show()
 
-    #save plot 
-    fig2.savefig('mean_noise.svg')
+    #save plot back one directory
+    os.chdir('../')  
+    fig2.savefig('figures/'+folder_name[1:-1]+'_mean_noise.svg')
+    fig2.savefig('figures/'+folder_name[1:-1]+'_mean_noise.png')
+
+    #save pickle file
+    with open(folder_name[1:-1]+'_mean_noise.pkl', 'wb') as f:
+        pkl.dump(empty_dict, f)
+
+    spider_plot_format = [microphone_locations, categories]
+    with open('spider_plot_format.pkl', 'wb') as f:
+        pkl.dump(spider_plot_format, f)
+
+
+#%% 
 
