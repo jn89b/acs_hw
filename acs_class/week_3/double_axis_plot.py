@@ -16,7 +16,9 @@ plt.close('all')
 
 folder_dir = '/OGpropmics/'
 folder_dir = '/mic_acs_data/'
-
+folder_dir = '/TrailingEdgeSerrated/'
+folder_dir = '/LeadingEdgeSerrated/'
+folder_dir = '/ThreeProp/'
 #get the csv files
 csv_files = utils.get_csv_files(folder_dir)
 
