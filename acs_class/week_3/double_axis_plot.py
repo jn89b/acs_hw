@@ -61,6 +61,8 @@ for i, (key, dataframe) in enumerate(data_dict.items()):
     #get mode of rpm
     rpm_value = dataframe[rpm_key].mode()[0]    
 
+    ## Search for actual max and plus or minus percent value 
+    
     condition = (dataframe[rpm_key] >= rpm_value - tolerance) & \
         (dataframe[rpm_key] <= rpm_value + tolerance)
 

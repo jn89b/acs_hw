@@ -162,8 +162,6 @@ def format_spider_plot(locations, categories):
     """builds a spider plot based on the locations of micrphone locations and the categories of the data"""
     fig, axis = plt.subplots(subplot_kw={'projection': 'polar'})
 
-    
-
     axis.set_xticks(locations, categories, color='black', size=10)
 
     # Draw ylabels
